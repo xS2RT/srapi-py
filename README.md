@@ -154,7 +154,7 @@ new_run = client.submit_run(
 
 # Moderator actions (requires API key + moderator role)
 client.update_run_status("run_id", "verified")
-client.update_run_status("run_id", "rejected", reason="No video proof")
+client.update_run_status("run_id", "rejected", reason="Mods are not allowed")
 client.delete_run("run_id")
 ```
 
