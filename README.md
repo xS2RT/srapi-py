@@ -39,34 +39,35 @@ import srapi
 
 client = srapi.Client()
 
+# 1. Fetch a game
 game = client.game("eldenring")
-categories = list(client.game_categories(game.id))
+print(game.name)        # Elden Ring
+print(game.release_date)  # 2022-02-25
 
-# Categories: Any%, Defeat Consort, Two Gods, All Remembrances, ...
-# Each category has subcategories (Zips, Unrestricted, Restricted, Glitchless)
-# implemented as variables in the API.
+# 2. List its categories
+for cat in client.game_categories(game.id):
+    print(cat.name)
+# Any%, Defeat Consort, Two Gods, All Remembrances, ...
 
-any_pct = next(c for c in categories if c.name == "Any%")
+# 3. Fetch a leaderboard
+any_pct = client.game_categories(game.id).first()  # Any%
+lb = client.leaderboard(game.id, any_pct.id, top=5)
 
-# Find the subcategory variable and its value IDs
-variables  = list(client.category_variables(any_pct.id))
-subcat_var = next(v for v in variables if "Subcategor" in v.name)
-glitchless = next(v for v in subcat_var.values.values() if v.label == "Glitchless")
-
-# Fetch the Any% Glitchless leaderboard — top 5
-lb = client.leaderboard(
-    game.id,
-    any_pct.id,
-    top=5,
-    variables={subcat_var.id: glitchless.id},
-)
 for entry in lb.runs:
-    print(f"#{entry.place} {entry.run.times.primary}")
+    runners = [p.id or p.name for p in entry.run.players]
+    print(f"#{entry.place}  {entry.run.times.primary}  {runners}")
 
-# Iterate all verified Any% Glitchless runs (auto-paginates)
-for run in client.runs(game=game.id, category=any_pct.id, status="verified"):
-    if run.values.get(subcat_var.id) == glitchless.id:
-        print(run.date, run.times.primary)
+# 4. Look up a runner
+user = client.user("distortion2")
+print(user.name, user.twitch)
+
+pbs = client.user_personal_bests(user.id, game=game.id)
+for pb in pbs:
+    print(f"#{pb.place}  {pb.run.times.primary}")
+
+# 5. Browse runs (auto-paginates through all pages)
+for run in client.runs(game=game.id, status="verified", sort_by="date", direction="desc"):
+    print(run.date, run.times.primary)
 ```
 
 ---
