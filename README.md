@@ -241,7 +241,7 @@ variables = list(client.category_variables(any_pct.id))
 
 # Elden Ring Any% variables:
 #   "Version"             — patch version (1.04, 1.07, ...)
-#   "Route"               — Wrong Warp, Glitchless, Rivers of Blood, ...
+#   "Route"               — Wrong Warp, Death's Poker, Bloodhound's Fang, ...
 #   "Any% - Subcategories"— Zips, Unrestricted, Restricted, Glitchless
 
 subcat_var = next(v for v in variables if "Subcategor" in v.name)
@@ -273,16 +273,15 @@ for run in client.runs(game=game.id, category=any_pct.id, status="verified"):
 
 # The same pattern applies to every category:
 # Defeat Consort, Two Gods, All Remembrances, etc. each have their own
-# "Subcategories" variable with the same four options.
 for cat in client.game_categories(game.id):
     cat_vars = list(client.category_variables(cat.id))
     sub = next((v for v in cat_vars if "Subcategor" in v.name), None)
     if sub:
         labels = [v.label for v in sub.values.values()]
         print(f"{cat.name}: {labels}")
-# Any%:                ['Zips', 'Unrestricted', 'Restricted', 'Glitchless']
-# Defeat Consort:      ['Zips', 'Unrestricted', 'Restricted', 'Glitchless']
-# Two Gods:            ['Zips', 'Unrestricted', 'Restricted', 'Glitchless']
+# Any%: ['Zips', 'Unrestricted', 'Restricted', 'Glitchless']
+# Defeat Consort: ['Unrestricted', 'Restricted', 'Glitchless']
+# Two Gods: ['Unrestricted', 'Restricted', 'Glitchless']
 # ...
 ```
 
