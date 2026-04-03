@@ -432,6 +432,15 @@ except srapi.SrapiError as e:
 
 ---
 
+## Contributors
+
+| | Name | Role |
+|---|---|---|
+| | **xS2RT** | Author |
+| 🤖 | **[Claude](https://claude.ai)** (Anthropic) | Built with Claude Code |
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
