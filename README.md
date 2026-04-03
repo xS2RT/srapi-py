@@ -39,18 +39,34 @@ import srapi
 
 client = srapi.Client()
 
-# Fetch a game
 game = client.game("eldenring")
-print(game.name, game.release_date)
+categories = list(client.game_categories(game.id))
 
-# Fetch the Any% leaderboard — top 3
-lb = client.leaderboard(game.id, "02qr00pk", top=3)
+# Categories: Any%, Defeat Consort, Two Gods, All Remembrances, ...
+# Each category has subcategories (Zips, Unrestricted, Restricted, Glitchless)
+# implemented as variables in the API.
+
+any_pct = next(c for c in categories if c.name == "Any%")
+
+# Find the subcategory variable and its value IDs
+variables  = list(client.category_variables(any_pct.id))
+subcat_var = next(v for v in variables if "Subcategor" in v.name)
+glitchless = next(v for v in subcat_var.values.values() if v.label == "Glitchless")
+
+# Fetch the Any% Glitchless leaderboard — top 5
+lb = client.leaderboard(
+    game.id,
+    any_pct.id,
+    top=5,
+    variables={subcat_var.id: glitchless.id},
+)
 for entry in lb.runs:
     print(f"#{entry.place} {entry.run.times.primary}")
 
-# Iterate all verified Any% runs (auto-paginates)
-for run in client.runs(game=game.id, category="02qr00pk", status="verified"):
-    print(run.date, run.times.primary)
+# Iterate all verified Any% Glitchless runs (auto-paginates)
+for run in client.runs(game=game.id, category=any_pct.id, status="verified"):
+    if run.values.get(subcat_var.id) == glitchless.id:
+        print(run.date, run.times.primary)
 ```
 
 ---
@@ -186,13 +202,16 @@ recs  = level.records(top=3)
 ### Leaderboards
 
 ```python
-# Full-game leaderboard
+# Full-game leaderboard (all subcategories mixed)
+lb = client.leaderboard(game="nd28z0ed", category="02qr00pk", top=10)
+
+# Filter to a specific subcategory — e.g. Any% Zips
+# Variable id="7891zr5n", Zips value id="10vmz22l"
 lb = client.leaderboard(
     game="nd28z0ed",
     category="02qr00pk",
     top=10,
-    timing="realtime",
-    variables={"var_id": "value_id"},   # filter by variable value
+    variables={"7891zr5n": "10vmz22l"},
 )
 
 for entry in lb.runs:
@@ -205,6 +224,66 @@ lb = client.level_leaderboard(
     category="category_id",
     top=5,
 )
+```
+
+---
+
+### Subcategories
+
+On speedrun.com, what appears in the UI as subcategory tabs — for example **Zips | Unrestricted | Restricted | Glitchless** under Elden Ring's Any% — are implemented in the API as **variables** on a category. There is no separate subcategory endpoint; you work with them through the variables system.
+
+```python
+game     = client.game("eldenring")
+any_pct  = next(c for c in client.game_categories(game.id) if c.name == "Any%")
+
+# Fetch the category's variables
+variables = list(client.category_variables(any_pct.id))
+
+# Elden Ring Any% variables:
+#   "Version"             — patch version (1.04, 1.07, ...)
+#   "Route"               — Wrong Warp, Glitchless, Rivers of Blood, ...
+#   "Any% - Subcategories"— Zips, Unrestricted, Restricted, Glitchless
+
+subcat_var = next(v for v in variables if "Subcategor" in v.name)
+print(subcat_var.name)
+# Any% - Subcategories
+
+for value_id, value in subcat_var.values.items():
+    print(value_id, value.label)
+# 10vmz22l  Zips
+# rqv5por1  Unrestricted
+# 5le7rzm1  Restricted
+# qj740p3q  Glitchless
+
+# Look up a specific subcategory value by label
+zips = next(v for v in subcat_var.values.values() if v.label == "Zips")
+
+# Leaderboard for Any% Zips
+lb = client.leaderboard(
+    game.id,
+    any_pct.id,
+    top=10,
+    variables={subcat_var.id: zips.id},
+)
+
+# Filter runs to a specific subcategory
+for run in client.runs(game=game.id, category=any_pct.id, status="verified"):
+    if run.values.get(subcat_var.id) == zips.id:
+        print(run.times.primary)
+
+# The same pattern applies to every category:
+# Defeat Consort, Two Gods, All Remembrances, etc. each have their own
+# "Subcategories" variable with the same four options.
+for cat in client.game_categories(game.id):
+    cat_vars = list(client.category_variables(cat.id))
+    sub = next((v for v in cat_vars if "Subcategor" in v.name), None)
+    if sub:
+        labels = [v.label for v in sub.values.values()]
+        print(f"{cat.name}: {labels}")
+# Any%:                ['Zips', 'Unrestricted', 'Restricted', 'Glitchless']
+# Defeat Consort:      ['Zips', 'Unrestricted', 'Restricted', 'Glitchless']
+# Two Gods:            ['Zips', 'Unrestricted', 'Restricted', 'Glitchless']
+# ...
 ```
 
 ---
