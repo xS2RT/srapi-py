@@ -163,11 +163,11 @@ client.delete_run("run_id")
 
 ```python
 # Fetch by ID or username
-user = client.user("distortion2")
+user = client.user("S2RT")
 print(user.name, user.role, user.twitch)
 
 # Search users
-for user in client.users(name="distortion"):
+for user in client.users(name="S2R"):
     print(user.name)
 
 # Personal bests
