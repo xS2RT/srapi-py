@@ -58,7 +58,7 @@ for entry in lb.runs:
     print(f"#{entry.place}  {entry.run.times.primary}  {runners}")
 
 # 4. Look up a runner
-user = client.user("distortion2")
+user = client.user("star0chris")
 print(user.name, user.twitch)
 
 pbs = client.user_personal_bests(user.id, game=game.id)
