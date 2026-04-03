@@ -23,7 +23,7 @@ Inspired by the Go client [sgt-kabukiman/srapi](https://github.com/sgt-kabukiman
 **From source (development):**
 
 ```bash
-git clone https://github.com/your-username/srapi-py.git
+git clone https://github.com/xS2RT/srapi-py.git
 cd srapi-py
 pip install -e .
 ```
